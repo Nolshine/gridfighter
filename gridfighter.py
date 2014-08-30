@@ -8,7 +8,8 @@ from random import choice
 import pygame
 from pygame.locals import *
 
-# i'm gonna try to make a thing where you fight enemies in a room that come out of the walls
+# i'm gonna try to make a thing where you fight
+# enemies in a room that come out of the walls
 
 ZONE_SIZE = 21
 ZONE = []
@@ -57,8 +58,7 @@ class Imager: #use this interface to load and use images
         if name in self.images:
             return self.images[name]
         else:
-            print "image not loaded"
-            return None
+            self.load(name, (name + ".png"))
             
 def render_all():
     global screen
@@ -128,9 +128,14 @@ class Actor:
 
     def up(self):
         global ZONE
+        global ZONE_SIZE
         
         if ZONE[self.posy-1][self.posx] == 0:
             self.posy -= 1
+            self.facing = "N"
+            return False
+        elif ZONE[self.posy-1][self.posx] == 2:
+            self.posy = ZONE_SIZE-2
             self.facing = "N"
             return False
         else:
@@ -143,6 +148,10 @@ class Actor:
             self.posy += 1
             self.facing = "S"
             return False
+        elif ZONE[self.posy+1][self.posx] == 2:
+            self.posy = 1
+            self.facing = "S"
+            return False
         else:
             return True
             
@@ -151,6 +160,9 @@ class Actor:
         
         if ZONE[self.posy][self.posx-1] == 0:
             self.posx -= 1
+            self.facing = "W"
+        elif ZONE[self.posy][self.posx-1] == 2:
+            self.posx = ZONE_SIZE-2
             self.facing = "W"
             return False
         else:
@@ -161,6 +173,9 @@ class Actor:
         
         if ZONE[self.posy][self.posx+1] == 0:
             self.posx += 1
+            self.facing = "E"
+        elif ZONE[self.posy][self.posx+1] == 2:
+            self.posx = 1
             self.facing = "E"
             return False
         else:
@@ -192,6 +207,7 @@ class Shot(Actor):
     def __init__(self, facing):
         global player
         self.timer = 0
+        self.facing = facing
         
         if facing == "N":
             self.dir = self.up
@@ -213,18 +229,31 @@ class Shot(Actor):
     def update(self):
         global monsters
         global bullets
-        
-        if self.timer == 0:
-            self.timer = 1
-            if self.dir():
-                bullets.remove(self)
-        else:
-            self.timer -= 1
+        global ZONE
 
-        for mob in monsters:
-            if self.posx == mob.posx and self.posy == mob.posy:
-                mob.damage(1)
-                bullets.remove(self)
+        if ZONE[self.posy][self.posx] == 1: #make sure I didn't get born in a wall
+            bullets.remove(self)
+        elif ZONE[self.posy][self.posx] == 2: #and if I was born in a portal?
+            if self.facing == "N":
+                self.posy = ZONE_SIZE-2
+            if self.facing == "S":
+                self.posy = 1
+            if self.facing == "W":
+                self.posx = ZONE_SIZE-2
+            if self.facing == "E":
+                self.posx = 1
+        else:    
+            if self.timer == 0:
+                self.timer = 1
+                if self.dir():
+                    bullets.remove(self)
+            else:
+                self.timer -= 1
+
+            for mob in monsters:
+                if self.posx == mob.posx and self.posy == mob.posy:
+                    mob.damage(1)
+                    bullets.remove(self)
     
     
 
