@@ -1,0 +1,7 @@
+WASD or Cursor Keys to move
+Space to shoot
+
+Movement happens one grid slot at a time
+
+avoid being hurt; shoot all enemies
+you are the green one
